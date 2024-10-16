@@ -23,17 +23,28 @@ export async function ProcessImage(event: EventGridEvent, context: InvocationCon
     }
 
     const blobName = blobUrl.split('/').pop();
-    context.log(`Blob name: ${blobName}`);
+    // const blobName = blobUrl;
+    context.log(`Encoded Blob name: ${blobName}`);
 
     if (!blobName) {
       throw new Error('Missing blob name');
     }
 
     const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AzureWebJobsStorage);
+
+    const containerName = process.env.BLOB_CONTAINER_NAME;
+    context.log(`Using container name: ${containerName}`);
+
+    if (!containerName) {
+      throw new Error('BLOB_CONTAINER_NAME environment variable is not set.');
+    }
+
     const containerClient = blobServiceClient.getContainerClient(process.env.BLOB_CONTAINER_NAME);
     context.log('Container client created');
 
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+    context.log(blockBlobClient);
     const downloadBlockBlobResponse = await blockBlobClient.download();
     context.log('Downloaded blob');
 
@@ -46,7 +57,8 @@ export async function ProcessImage(event: EventGridEvent, context: InvocationCon
     image.greyscale();
     context.log('Converted to greyscale');
 
-    const processedImageBuffer = await getBufferAsync(image, 'image/png');
+    // const processedImageBuffer = await getBuffer(image, 'image/png', context);
+    const processedImageBuffer = await image.getBuffer('image/jpeg');
     context.log('Processed image buffer ready');
 
     const processedBlobName = `processed-${blobName}`;
@@ -73,17 +85,21 @@ export async function ProcessImage(event: EventGridEvent, context: InvocationCon
  * @param mimeType The MIME type of the image
  * @returns A Promise that resolves with a Buffer containing the image data
  */
-async function getBufferAsync(image, mimeType: string): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    image.getBuffer(mimeType, (err: Error, buffer: Buffer) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(buffer);
-      }
-    })
-  })
-}
+// async function getBufferAsync(image, mimeType: string, context: InvocationContext): Promise<Buffer> {
+//   return new Promise((resolve, reject) => {
+//     context.log('getBufferAsync: Starting buffer generation...');
+//     image.getBuffer(mimeType, (err: Error, buffer: Buffer) => {
+//       if (err) {
+//         context.log('getBufferAsync: Error occurred while generating buffer:', err);
+//         reject(err);
+//       } else {
+//         context.log('getBufferAsync: Buffer generated successfully.');
+//         resolve(buffer);
+//       }
+//     });
+//   });
+// }
+
 
 /**
  * A promise-based wrapper around a Node.js readable stream that resolves with a Buffer
