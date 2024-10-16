@@ -18,7 +18,7 @@
     "jimp": "^1.6.0"
   },
   "devDependencies": {
-    "@types/node": "18.x",
+    "@types/node": "^18.19.55",
     "azure-functions-core-tools": "^4.x",
     "rimraf": "^5.0.0",
     "typescript": "5.6.3"

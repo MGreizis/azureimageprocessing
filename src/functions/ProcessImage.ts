@@ -51,6 +51,13 @@ export async function ProcessImage(event: EventGridEvent, context: InvocationCon
 
     const processedBlobName = `processed-${blobName}`;
     const processedContainerClient = blobServiceClient.getContainerClient(process.env.PROCESSED_BLOB_CONTAINER_NAME);
+
+    // Create the container if it doesn't exist
+    const createContainerResponse = await processedContainerClient.createIfNotExists();
+    if (createContainerResponse.succeeded) {
+      context.log(`Created container: ${processedContainerClient.containerName}`);
+    }
+
     const processedBlockBlobClient = processedContainerClient.getBlockBlobClient(processedBlobName);
     await processedBlockBlobClient.upload(processedImageBuffer, processedImageBuffer.length);
 
