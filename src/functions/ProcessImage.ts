@@ -49,7 +49,9 @@ export async function ProcessImage(event: EventGridEvent, context: InvocationCon
 
     image.greyscale();
     context.log('Converted to greyscale');
-
+    image.fisheye({ radius: 1.5 });
+    context.log('Fisheyed image');
+    
     const processedImageBuffer = await image.getBuffer('image/jpeg');
     context.log('Processed image buffer ready');
 
